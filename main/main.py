@@ -1,15 +1,35 @@
 # coding: utf-8
-import csv
+import csv  # to process input and output files
+from langdetect import detect  # module to detect languages
+from os import path  # to check if file exists
 
-from langdetect import detect
+file_input = 'push_small_temp.csv'  # file to read messages from
 file_output = 'pushes_analyzed.csv'  # file two write sorted messages to
-file_input = 'pushes_2018-09-11_all.csv'  # file to read messages from
-# list of column names with languages
-fields = ['Key', 'en', 'es', 'pt', 'fr', 'de', 'it', 'ru', 'ja', 'kr','ar','tr','th','vi','nl','he','in','pl','uk','id']
-# list where rows are stored
-strings_list = []
+list_of_langs = open("language_codes.txt")  # files with language list
+fields = list_of_langs.read().rsplit(',')  # processed list of languages
+
+
+# asking user to provide source file name
+nextstep = 0
+while nextstep == 0:
+    print('Please input CSV file name to process\nor NONE (all caps) to quit')
+    request_input_name = input('>>> ')
+    if request_input_name == 'NONE':
+        print('Bye!')
+        quit('quitting....')
+    elif path.exists(request_input_name) is True:
+        file_input = request_input_name
+        nextstep = 1
+    else:
+        print('File not found, try again')
+
+
+strings_list = []  # list where rows are stored
+
 # reader of cv in dict format with dialect delimiter set to tabulation
 dict_reader = csv.DictReader(open(file_input), dialect='excel-tab')
+
+
 # function to analyze language of the string
 def language_detection(reader, fld, key_reading, content_reading, str_lst):
     # reader is the dict_reader from above
@@ -39,11 +59,16 @@ def language_detection(reader, fld, key_reading, content_reading, str_lst):
                 pass
         except:
             print('Something wrong with identification of: ', current_key)
+
+
 def write_to_csv(str_lst, output, dlct='excel-tab'):
     with open(output, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields, dialect=dlct)
         writer.writeheader()
         writer.writerows(str_lst)
+
+
+# executing the program
 language_detection(dict_reader, fields, 'Key', 'content', strings_list)
 write_to_csv(strings_list, file_output)
 
